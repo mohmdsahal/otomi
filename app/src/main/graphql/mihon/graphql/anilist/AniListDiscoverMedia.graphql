@@ -1,0 +1,34 @@
+query AniListDiscoverMedia(
+  $page: Int,
+  $type: MediaType,
+  $search: String,
+  $sort: [MediaSort],
+  $isAdult: Boolean,
+) {
+  Page(page: $page) {
+    pageInfo {
+      hasNextPage
+    }
+    media(type: $type, search: $search, sort: $sort, isAdult: $isAdult) {
+      id
+      type
+      title {
+        userPreferred
+      }
+      coverImage {
+        large
+      }
+      format
+      status
+      averageScore
+      popularity
+      startDate {
+        year
+      }
+      isAdult
+      mediaListEntry {
+        status
+      }
+    }
+  }
+}

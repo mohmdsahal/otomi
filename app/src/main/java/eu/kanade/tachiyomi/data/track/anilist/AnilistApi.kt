@@ -28,6 +28,8 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 import tachiyomi.domain.track.model.Track as DomainTrack
 import mihon.graphql.anilist.AniListGetCollectionQuery
+import mihon.graphql.anilist.AniListDiscoverMediaQuery
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALMediaPreview
 
 class AnilistApi(
     val trackerId: Long,
@@ -188,6 +190,47 @@ class AnilistApi(
                     ?.filterNotNull()
                     ?.flatMap { list -> list.entries.orEmpty() }
                     ?.mapNotNull { entry -> entry?.media?.mangaFragment?.toTrackSearch(trackerId) }
+                    ?: emptyList()
+            }
+    }
+
+    suspend fun discoverMedia(
+        page: Int,
+        type: String,
+        search: String? = null,
+        isAdult: Boolean = false,
+    ): List<ALMediaPreview> {
+        return graphQlClient
+            .query(
+                AniListDiscoverMediaQuery(
+                    page = Optional.present(page),
+                    type = Optional.present(mihon.graphql.anilist.type.MediaType.valueOf(type)),
+                    search = Optional.presentIfNotNull(search),
+                    isAdult = Optional.present(isAdult),
+                ),
+            )
+            .execute()
+            .dataOrElse(
+                errorLog = "AniList: Failed to discover media",
+                default = { emptyList() },
+            ) {
+                it.Page?.media
+                    ?.filterNotNull()
+                    ?.map { media ->
+                        ALMediaPreview(
+                            id = media.id,
+                            type = media.type.toString(),
+                            title = media.title?.userPreferred.orEmpty(),
+                            coverUrl = media.coverImage?.large,
+                            format = media.format?.toString(),
+                            status = media.status?.toString(),
+                            averageScore = media.averageScore,
+                            popularity = media.popularity,
+                            startYear = media.startDate?.year,
+                            isAdult = media.isAdult ?: false,
+                            listStatus = media.mediaListEntry?.status?.toString(),
+                        )
+                    }
                     ?: emptyList()
             }
     }
