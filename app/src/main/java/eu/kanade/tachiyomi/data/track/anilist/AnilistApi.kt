@@ -36,6 +36,8 @@ import mihon.graphql.anilist.AniListGetMediaCharactersQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALCharacterEntry
 import mihon.graphql.anilist.AniListGetMediaStaffQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALStaffEntry
+import mihon.graphql.anilist.AniListGetMediaStudiosQuery
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALStudioEntry
 
 class AnilistApi(
     val trackerId: Long,
@@ -335,6 +337,32 @@ class AnilistApi(
                                 name = node.name?.userPreferred.orEmpty(),
                                 imageUrl = node.image?.large,
                                 role = edge.role,
+                            )
+                        }
+                    }
+                    ?: emptyList()
+            }
+    }
+
+    suspend fun getMediaStudios(id: Int): List<ALStudioEntry> {
+        return graphQlClient
+            .query(
+                AniListGetMediaStudiosQuery(id = id),
+            )
+            .execute()
+            .dataOrElse(
+                errorLog = "AniList: Failed to get media studios",
+                default = { emptyList() },
+            ) { data ->
+                data.Media?.studios?.edges
+                    ?.filterNotNull()
+                    ?.mapNotNull { edge ->
+                        edge.node?.let { node ->
+                            ALStudioEntry(
+                                id = node.id,
+                                name = node.name,
+                                isMain = edge.isMain,
+                                siteUrl = node.siteUrl,
                             )
                         }
                     }

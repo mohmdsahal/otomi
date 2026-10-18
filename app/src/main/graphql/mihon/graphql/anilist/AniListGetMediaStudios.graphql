@@ -1,0 +1,16 @@
+query AniListGetMediaStudios(
+  $id: Int!,
+) {
+  Media(id: $id) {
+    studios {
+      edges {
+        isMain
+        node {
+          id
+          name
+          siteUrl
+        }
+      }
+    }
+  }
+}
