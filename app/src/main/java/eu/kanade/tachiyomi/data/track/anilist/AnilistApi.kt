@@ -34,6 +34,8 @@ import mihon.graphql.anilist.AniListGetMediaDetailsQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALMediaDetails
 import mihon.graphql.anilist.AniListGetMediaCharactersQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALCharacterEntry
+import mihon.graphql.anilist.AniListGetMediaStaffQuery
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALStaffEntry
 
 class AnilistApi(
     val trackerId: Long,
@@ -304,6 +306,35 @@ class AnilistApi(
                                 role = edge.role?.toString(),
                                 voiceActorName = va?.name?.userPreferred,
                                 voiceActorImageUrl = va?.image?.large,
+                            )
+                        }
+                    }
+                    ?: emptyList()
+            }
+    }
+
+    suspend fun getMediaStaff(id: Int, page: Int = 1): List<ALStaffEntry> {
+        return graphQlClient
+            .query(
+                AniListGetMediaStaffQuery(
+                    id = id,
+                    page = Optional.present(page),
+                ),
+            )
+            .execute()
+            .dataOrElse(
+                errorLog = "AniList: Failed to get media staff",
+                default = { emptyList() },
+            ) { data ->
+                data.Media?.staff?.edges
+                    ?.filterNotNull()
+                    ?.mapNotNull { edge ->
+                        edge.node?.let { node ->
+                            ALStaffEntry(
+                                id = node.id,
+                                name = node.name?.userPreferred.orEmpty(),
+                                imageUrl = node.image?.large,
+                                role = edge.role,
                             )
                         }
                     }

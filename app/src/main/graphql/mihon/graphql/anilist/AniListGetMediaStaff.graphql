@@ -1,0 +1,24 @@
+query AniListGetMediaStaff(
+  $id: Int!,
+  $page: Int,
+) {
+  Media(id: $id) {
+    staff(page: $page, sort: [RELEVANCE, ID]) {
+      pageInfo {
+        hasNextPage
+      }
+      edges {
+        role
+        node {
+          id
+          name {
+            userPreferred
+          }
+          image {
+            large
+          }
+        }
+      }
+    }
+  }
+}
