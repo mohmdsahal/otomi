@@ -38,6 +38,8 @@ import mihon.graphql.anilist.AniListGetMediaStaffQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALStaffEntry
 import mihon.graphql.anilist.AniListGetMediaStudiosQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALStudioEntry
+import mihon.graphql.anilist.AniListGetCharacterDetailsQuery
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALCharacterDetails
 
 class AnilistApi(
     val trackerId: Long,
@@ -367,6 +369,34 @@ class AnilistApi(
                         }
                     }
                     ?: emptyList()
+            }
+    }
+
+    suspend fun getCharacterDetails(id: Int): ALCharacterDetails? {
+        return graphQlClient
+            .query(
+                AniListGetCharacterDetailsQuery(id = id),
+            )
+            .execute()
+            .dataOrElse(
+                errorLog = "AniList: Failed to get character details",
+                default = { null },
+            ) { data ->
+                data.Character?.let { character ->
+                    ALCharacterDetails(
+                        id = character.id,
+                        name = character.name?.full.orEmpty(),
+                        nativeName = character.name?.native,
+                        alternativeNames = character.name?.alternative?.filterNotNull().orEmpty(),
+                        imageUrl = character.image?.large,
+                        description = character.description,
+                        birthYear = character.dateOfBirth?.year,
+                        birthMonth = character.dateOfBirth?.month,
+                        birthDay = character.dateOfBirth?.day,
+                        favourites = character.favourites,
+                        siteUrl = character.siteUrl,
+                    )
+                }
             }
     }
 

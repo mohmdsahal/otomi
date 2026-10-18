@@ -1,0 +1,23 @@
+query AniListGetCharacterDetails(
+  $id: Int!,
+) {
+  Character(id: $id) {
+    id
+    name {
+      full
+      native
+      alternative
+    }
+    image {
+      large
+    }
+    description
+    dateOfBirth {
+      year
+      month
+      day
+    }
+    favourites
+    siteUrl
+  }
+}
