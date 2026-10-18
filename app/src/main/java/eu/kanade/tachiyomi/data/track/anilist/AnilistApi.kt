@@ -27,6 +27,7 @@ import tachiyomi.core.common.util.system.logcat
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 import tachiyomi.domain.track.model.Track as DomainTrack
+import mihon.graphql.anilist.AniListGetCollectionQuery
 
 class AnilistApi(
     val trackerId: Long,
@@ -169,6 +170,26 @@ class AnilistApi(
                 it.Viewer?.toALUser()
             }
             ?: throw Exception("Failed to get AniList user data")
+    }
+    suspend fun getCollection(userId: Int, type: String): List<TrackSearch> {
+        return graphQlClient
+            .query(
+                AniListGetCollectionQuery(
+                    user_id = userId,
+                    type = mihon.graphql.anilist.type.MediaType.valueOf(type),
+                ),
+            )
+            .execute()
+            .dataOrElse(
+                errorLog = "AniList: Failed to get collection",
+                default = { emptyList() },
+            ) {
+                it.MediaListCollection?.lists
+                    ?.filterNotNull()
+                    ?.flatMap { list -> list.entries.orEmpty() }
+                    ?.mapNotNull { entry -> entry?.media?.mangaFragment?.toTrackSearch(trackerId) }
+                    ?: emptyList()
+            }
     }
 
     suspend fun getMangaDetails(id: Int): TrackSearch? {

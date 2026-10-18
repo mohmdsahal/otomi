@@ -77,7 +77,7 @@ internal fun AniListGetMangaDetailsQuery.Medium.toTrackSearch(trackId: Long): Tr
     return mangaFragment.toTrackSearch(trackId)
 }
 
-private fun MangaFragment.toTrackSearch(trackId: Long): TrackSearch {
+internal fun MangaFragment.toTrackSearch(trackId: Long): TrackSearch {
     val alManga = this
     return TrackSearch.create(trackId).apply {
         remote_id = alManga.id.toLong()

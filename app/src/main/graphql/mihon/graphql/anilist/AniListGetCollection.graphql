@@ -1,0 +1,24 @@
+query AniListGetCollection(
+  $user_id: Int!,
+  $type: MediaType!,
+) {
+  MediaListCollection(userId: $user_id, type: $type) {
+    lists {
+      name
+      isCustomList
+      status
+      entries {
+        id
+        status
+        scoreRaw: score(format: POINT_100)
+        progress
+        private
+        startedAt { year month day }
+        completedAt { year month day }
+        media {
+          ...MangaFragment
+        }
+      }
+    }
+  }
+}
