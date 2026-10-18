@@ -32,6 +32,8 @@ import mihon.graphql.anilist.AniListDiscoverMediaQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALMediaPreview
 import mihon.graphql.anilist.AniListGetMediaDetailsQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALMediaDetails
+import mihon.graphql.anilist.AniListGetMediaCharactersQuery
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALCharacterEntry
 
 class AnilistApi(
     val trackerId: Long,
@@ -274,6 +276,38 @@ class AnilistApi(
                         listStatus = media.mediaListEntry?.status?.toString(),
                     )
                 }
+            }
+    }
+
+    suspend fun getMediaCharacters(id: Int, page: Int = 1): List<ALCharacterEntry> {
+        return graphQlClient
+            .query(
+                AniListGetMediaCharactersQuery(
+                    id = id,
+                    page = Optional.present(page),
+                ),
+            )
+            .execute()
+            .dataOrElse(
+                errorLog = "AniList: Failed to get media characters",
+                default = { emptyList() },
+            ) { data ->
+                data.Media?.characters?.edges
+                    ?.filterNotNull()
+                    ?.mapNotNull { edge ->
+                        edge.node?.let { node ->
+                            val va = edge.voiceActors?.firstOrNull()
+                            ALCharacterEntry(
+                                id = node.id,
+                                name = node.name?.userPreferred.orEmpty(),
+                                imageUrl = node.image?.large,
+                                role = edge.role?.toString(),
+                                voiceActorName = va?.name?.userPreferred,
+                                voiceActorImageUrl = va?.image?.large,
+                            )
+                        }
+                    }
+                    ?: emptyList()
             }
     }
 

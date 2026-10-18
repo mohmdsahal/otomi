@@ -1,0 +1,33 @@
+query AniListGetMediaCharacters(
+  $id: Int!,
+  $page: Int,
+) {
+  Media(id: $id) {
+    characters(page: $page, sort: [ROLE, RELEVANCE, ID]) {
+      pageInfo {
+        hasNextPage
+      }
+      edges {
+        role
+        node {
+          id
+          name {
+            userPreferred
+          }
+          image {
+            large
+          }
+        }
+        voiceActors(sort: RELEVANCE) {
+          id
+          name {
+            userPreferred
+          }
+          image {
+            large
+          }
+        }
+      }
+    }
+  }
+}
