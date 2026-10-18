@@ -1,0 +1,70 @@
+query AniListGetMediaDetails(
+  $id: Int!,
+) {
+  Media(id: $id) {
+    id
+    type
+    title {
+      userPreferred
+      english
+      romaji
+      native
+    }
+    description
+    coverImage {
+      extraLarge
+      large
+    }
+    bannerImage
+    episodes
+    chapters
+    volumes
+    format
+    status
+    startDate {
+      year
+      month
+      day
+    }
+    endDate {
+      year
+      month
+      day
+    }
+    genres
+    isAdult
+    averageScore
+    meanScore
+    popularity
+    source
+    siteUrl
+    studios {
+      edges {
+        isMain
+        node {
+          id
+          name
+        }
+      }
+    }
+    relations {
+      edges {
+        relationType
+        node {
+          id
+          type
+          format
+          title {
+            userPreferred
+          }
+          coverImage {
+            large
+          }
+        }
+      }
+    }
+    mediaListEntry {
+      status
+    }
+  }
+}

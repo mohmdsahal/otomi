@@ -30,6 +30,8 @@ import tachiyomi.domain.track.model.Track as DomainTrack
 import mihon.graphql.anilist.AniListGetCollectionQuery
 import mihon.graphql.anilist.AniListDiscoverMediaQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALMediaPreview
+import mihon.graphql.anilist.AniListGetMediaDetailsQuery
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALMediaDetails
 
 class AnilistApi(
     val trackerId: Long,
@@ -232,6 +234,46 @@ class AnilistApi(
                         )
                     }
                     ?: emptyList()
+            }
+    }
+
+    suspend fun getMediaInfo(id: Int): ALMediaDetails? {
+        return graphQlClient
+            .query(
+                AniListGetMediaDetailsQuery(id = id),
+            )
+            .execute()
+            .dataOrElse(
+                errorLog = "AniList: Failed to get media info",
+                default = { null },
+            ) { data ->
+                data.Media?.let { media ->
+                    ALMediaDetails(
+                        id = media.id,
+                        type = media.type.toString(),
+                        title = media.title?.userPreferred.orEmpty(),
+                        titleEnglish = media.title?.english,
+                        description = media.description,
+                        coverUrl = media.coverImage?.extraLarge ?: media.coverImage?.large,
+                        bannerUrl = media.bannerImage,
+                        episodes = media.episodes,
+                        chapters = media.chapters,
+                        volumes = media.volumes,
+                        format = media.format?.toString(),
+                        status = media.status?.toString(),
+                        genres = media.genres?.filterNotNull().orEmpty(),
+                        isAdult = media.isAdult ?: false,
+                        averageScore = media.averageScore,
+                        popularity = media.popularity,
+                        source = media.source?.toString(),
+                        siteUrl = media.siteUrl,
+                        studios = media.studios?.edges
+                            ?.filterNotNull()
+                            ?.mapNotNull { it.node?.name }
+                            .orEmpty(),
+                        listStatus = media.mediaListEntry?.status?.toString(),
+                    )
+                }
             }
     }
 
