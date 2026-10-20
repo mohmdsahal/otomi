@@ -48,6 +48,8 @@ import eu.kanade.tachiyomi.data.track.anilist.dto.ALStudioMediaEntry
 import mihon.graphql.anilist.AniListGetFavouritesQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALFavourites
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALFavouriteEntry
+import mihon.graphql.anilist.AniListGetActivityFeedQuery
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALActivityEntry
 
 class AnilistApi(
     val trackerId: Long,
@@ -514,6 +516,71 @@ class AnilistApi(
                             .orEmpty(),
                     )
                 }
+            }
+    }
+
+    suspend fun getActivityFeed(
+        userId: Int? = null,
+        page: Int = 1,
+        isFollowing: Boolean = false,
+    ): List<ALActivityEntry> {
+        return graphQlClient
+            .query(
+                AniListGetActivityFeedQuery(
+                    userId = Optional.presentIfNotNull(userId),
+                    page = Optional.present(page),
+                    isFollowing = Optional.present(isFollowing),
+                ),
+            )
+            .execute()
+            .dataOrElse(
+                errorLog = "AniList: Failed to get activity feed",
+                default = { emptyList() },
+            ) { data ->
+                data.Page?.activities
+                    ?.filterNotNull()
+                    ?.mapNotNull { activity ->
+                        activity.onListActivity?.let { listActivity ->
+                            ALActivityEntry(
+                                id = listActivity.id,
+                                type = "LIST",
+                                userId = listActivity.user?.id,
+                                userName = listActivity.user?.name,
+                                userAvatarUrl = listActivity.user?.avatar?.large,
+                                status = listActivity.status,
+                                progress = listActivity.progress,
+                                text = null,
+                                mediaId = listActivity.media?.id,
+                                mediaTitle = listActivity.media?.title?.userPreferred,
+                                mediaCoverUrl = listActivity.media?.coverImage?.large,
+                                createdAt = listActivity.createdAt,
+                                siteUrl = listActivity.siteUrl,
+                                likeCount = listActivity.likeCount,
+                                isLiked = listActivity.isLiked ?: false,
+                                replyCount = listActivity.replyCount,
+                            )
+                        } ?: activity.onTextActivity?.let { textActivity ->
+                            ALActivityEntry(
+                                id = textActivity.id,
+                                type = "TEXT",
+                                userId = textActivity.user?.id,
+                                userName = textActivity.user?.name,
+                                userAvatarUrl = textActivity.user?.avatar?.large,
+                                status = null,
+                                progress = null,
+                                text = textActivity.text,
+                                mediaId = null,
+                                mediaTitle = null,
+                                mediaCoverUrl = null,
+                                createdAt = textActivity.createdAt,
+                                siteUrl = textActivity.siteUrl,
+                                likeCount = textActivity.likeCount,
+                                isLiked = textActivity.isLiked ?: false,
+                                replyCount = textActivity.replyCount,
+                            )
+                        }
+                    }
+                    ?: emptyList()
             }
     }
 

@@ -1,0 +1,56 @@
+query AniListGetActivityFeed(
+  $userId: Int,
+  $page: Int,
+  $isFollowing: Boolean,
+) {
+  Page(page: $page) {
+    pageInfo {
+      hasNextPage
+    }
+    activities(userId: $userId, isFollowing: $isFollowing, sort: [ID_DESC]) {
+      ... on ListActivity {
+        id
+        status
+        progress
+        createdAt
+        siteUrl
+        likeCount
+        isLiked
+        replyCount
+        user {
+          id
+          name
+          avatar {
+            large
+          }
+        }
+        media {
+          id
+          type
+          title {
+            userPreferred
+          }
+          coverImage {
+            large
+          }
+        }
+      }
+      ... on TextActivity {
+        id
+        text
+        createdAt
+        siteUrl
+        likeCount
+        isLiked
+        replyCount
+        user {
+          id
+          name
+          avatar {
+            large
+          }
+        }
+      }
+    }
+  }
+}
