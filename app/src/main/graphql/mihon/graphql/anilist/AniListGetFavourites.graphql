@@ -1,0 +1,48 @@
+query AniListGetFavourites(
+  $userId: Int!,
+  $page: Int,
+) {
+  User(id: $userId) {
+    favourites {
+      anime(page: $page) {
+        pageInfo { hasNextPage }
+        nodes {
+          id
+          title { userPreferred }
+          coverImage { large }
+        }
+      }
+      manga(page: $page) {
+        pageInfo { hasNextPage }
+        nodes {
+          id
+          title { userPreferred }
+          coverImage { large }
+        }
+      }
+      characters(page: $page) {
+        pageInfo { hasNextPage }
+        nodes {
+          id
+          name { userPreferred }
+          image { large }
+        }
+      }
+      staff(page: $page) {
+        pageInfo { hasNextPage }
+        nodes {
+          id
+          name { userPreferred }
+          image { large }
+        }
+      }
+      studios(page: $page) {
+        pageInfo { hasNextPage }
+        nodes {
+          id
+          name
+        }
+      }
+    }
+  }
+}

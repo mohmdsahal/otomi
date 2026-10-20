@@ -45,6 +45,9 @@ import eu.kanade.tachiyomi.data.track.anilist.dto.ALStaffDetails
 import mihon.graphql.anilist.AniListGetStudioDetailsQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALStudioDetails
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALStudioMediaEntry
+import mihon.graphql.anilist.AniListGetFavouritesQuery
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALFavourites
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALFavouriteEntry
 
 class AnilistApi(
     val trackerId: Long,
@@ -468,6 +471,46 @@ class AnilistApi(
                                     )
                                 }
                             }
+                            .orEmpty(),
+                    )
+                }
+            }
+    }
+
+    suspend fun getFavourites(userId: Int, page: Int = 1): ALFavourites? {
+        return graphQlClient
+            .query(
+                AniListGetFavouritesQuery(
+                    userId = userId,
+                    page = Optional.present(page),
+                ),
+            )
+            .execute()
+            .dataOrElse(
+                errorLog = "AniList: Failed to get favourites",
+                default = { null },
+            ) { data ->
+                data.User?.favourites?.let { fav ->
+                    ALFavourites(
+                        anime = fav.anime?.nodes
+                            ?.filterNotNull()
+                            ?.map { ALFavouriteEntry(it.id, it.title?.userPreferred.orEmpty(), it.coverImage?.large) }
+                            .orEmpty(),
+                        manga = fav.manga?.nodes
+                            ?.filterNotNull()
+                            ?.map { ALFavouriteEntry(it.id, it.title?.userPreferred.orEmpty(), it.coverImage?.large) }
+                            .orEmpty(),
+                        characters = fav.characters?.nodes
+                            ?.filterNotNull()
+                            ?.map { ALFavouriteEntry(it.id, it.name?.userPreferred.orEmpty(), it.image?.large) }
+                            .orEmpty(),
+                        staff = fav.staff?.nodes
+                            ?.filterNotNull()
+                            ?.map { ALFavouriteEntry(it.id, it.name?.userPreferred.orEmpty(), it.image?.large) }
+                            .orEmpty(),
+                        studios = fav.studios?.nodes
+                            ?.filterNotNull()
+                            ?.map { ALFavouriteEntry(it.id, it.name, null) }
                             .orEmpty(),
                     )
                 }
