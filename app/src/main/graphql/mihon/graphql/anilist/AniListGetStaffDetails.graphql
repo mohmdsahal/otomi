@@ -1,0 +1,25 @@
+query AniListGetStaffDetails(
+  $id: Int!,
+) {
+  Staff(id: $id) {
+    id
+    name {
+      full
+      native
+      alternative
+    }
+    image {
+      large
+    }
+    description
+    primaryOccupations
+    homeTown
+    dateOfBirth {
+      year
+      month
+      day
+    }
+    favourites
+    siteUrl
+  }
+}

@@ -40,6 +40,8 @@ import mihon.graphql.anilist.AniListGetMediaStudiosQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALStudioEntry
 import mihon.graphql.anilist.AniListGetCharacterDetailsQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALCharacterDetails
+import mihon.graphql.anilist.AniListGetStaffDetailsQuery
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALStaffDetails
 
 class AnilistApi(
     val trackerId: Long,
@@ -395,6 +397,36 @@ class AnilistApi(
                         birthDay = character.dateOfBirth?.day,
                         favourites = character.favourites,
                         siteUrl = character.siteUrl,
+                    )
+                }
+            }
+    }
+
+    suspend fun getStaffDetails(id: Int): ALStaffDetails? {
+        return graphQlClient
+            .query(
+                AniListGetStaffDetailsQuery(id = id),
+            )
+            .execute()
+            .dataOrElse(
+                errorLog = "AniList: Failed to get staff details",
+                default = { null },
+            ) { data ->
+                data.Staff?.let { staff ->
+                    ALStaffDetails(
+                        id = staff.id,
+                        name = staff.name?.full.orEmpty(),
+                        nativeName = staff.name?.native,
+                        alternativeNames = staff.name?.alternative?.filterNotNull().orEmpty(),
+                        imageUrl = staff.image?.large,
+                        description = staff.description,
+                        occupations = staff.primaryOccupations?.filterNotNull().orEmpty(),
+                        homeTown = staff.homeTown,
+                        birthYear = staff.dateOfBirth?.year,
+                        birthMonth = staff.dateOfBirth?.month,
+                        birthDay = staff.dateOfBirth?.day,
+                        favourites = staff.favourites,
+                        siteUrl = staff.siteUrl,
                     )
                 }
             }
