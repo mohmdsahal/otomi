@@ -42,6 +42,9 @@ import mihon.graphql.anilist.AniListGetCharacterDetailsQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALCharacterDetails
 import mihon.graphql.anilist.AniListGetStaffDetailsQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALStaffDetails
+import mihon.graphql.anilist.AniListGetStudioDetailsQuery
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALStudioDetails
+import eu.kanade.tachiyomi.data.track.anilist.dto.ALStudioMediaEntry
 
 class AnilistApi(
     val trackerId: Long,
@@ -427,6 +430,45 @@ class AnilistApi(
                         birthDay = staff.dateOfBirth?.day,
                         favourites = staff.favourites,
                         siteUrl = staff.siteUrl,
+                    )
+                }
+            }
+    }
+
+    suspend fun getStudioDetails(id: Int, page: Int = 1): ALStudioDetails? {
+        return graphQlClient
+            .query(
+                AniListGetStudioDetailsQuery(
+                    id = id,
+                    page = Optional.present(page),
+                ),
+            )
+            .execute()
+            .dataOrElse(
+                errorLog = "AniList: Failed to get studio details",
+                default = { null },
+            ) { data ->
+                data.Studio?.let { studio ->
+                    ALStudioDetails(
+                        id = studio.id,
+                        name = studio.name,
+                        favourites = studio.favourites,
+                        siteUrl = studio.siteUrl,
+                        media = studio.media?.edges
+                            ?.filterNotNull()
+                            ?.mapNotNull { edge ->
+                                edge.node?.let { node ->
+                                    ALStudioMediaEntry(
+                                        id = node.id,
+                                        type = node.type.toString(),
+                                        title = node.title?.userPreferred.orEmpty(),
+                                        coverUrl = node.coverImage?.large,
+                                        format = node.format?.toString(),
+                                        startYear = node.startDate?.year,
+                                    )
+                                }
+                            }
+                            .orEmpty(),
                     )
                 }
             }

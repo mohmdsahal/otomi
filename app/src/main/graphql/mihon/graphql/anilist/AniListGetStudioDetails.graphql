@@ -1,0 +1,32 @@
+query AniListGetStudioDetails(
+  $id: Int!,
+  $page: Int,
+) {
+  Studio(id: $id) {
+    id
+    name
+    favourites
+    siteUrl
+    media(page: $page, sort: [START_DATE_DESC]) {
+      pageInfo {
+        hasNextPage
+      }
+      edges {
+        node {
+          id
+          type
+          title {
+            userPreferred
+          }
+          coverImage {
+            large
+          }
+          format
+          startDate {
+            year
+          }
+        }
+      }
+    }
+  }
+}
