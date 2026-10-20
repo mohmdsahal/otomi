@@ -613,7 +613,7 @@ class AnilistApi(
     }
 
     companion object {
-        private const val CLIENT_ID = "16329"
+        private const val CLIENT_ID = "30552"
 
         fun authUrl(): Uri = "https://anilist.co/api/v2/oauth/authorize".toUri().buildUpon()
             .appendQueryParameter("client_id", CLIENT_ID)
