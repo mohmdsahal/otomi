@@ -50,6 +50,7 @@ import eu.kanade.tachiyomi.data.track.anilist.dto.ALFavourites
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALFavouriteEntry
 import mihon.graphql.anilist.AniListGetActivityFeedQuery
 import eu.kanade.tachiyomi.data.track.anilist.dto.ALActivityEntry
+import mihon.graphql.anilist.AniListToggleActivityLikeMutation
 
 class AnilistApi(
     val trackerId: Long,
@@ -581,6 +582,22 @@ class AnilistApi(
                         }
                     }
                     ?: emptyList()
+            }
+    }
+
+    suspend fun toggleActivityLike(activityId: Int): Boolean {
+        return graphQlClient
+            .mutation(
+                AniListToggleActivityLikeMutation(id = activityId),
+            )
+            .execute()
+            .dataOrElse(
+                errorLog = "AniList: Failed to toggle activity like",
+                default = { false },
+            ) { data ->
+                data.ToggleLikeV2?.onListActivity?.isLiked
+                    ?: data.ToggleLikeV2?.onTextActivity?.isLiked
+                    ?: false
             }
     }
 

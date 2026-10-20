@@ -1,0 +1,16 @@
+mutation AniListToggleActivityLike(
+  $id: Int!,
+) {
+  ToggleLikeV2(id: $id, type: ACTIVITY) {
+    ... on ListActivity {
+      id
+      likeCount
+      isLiked
+    }
+    ... on TextActivity {
+      id
+      likeCount
+      isLiked
+    }
+  }
+}
